@@ -7,6 +7,8 @@
 html {
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100%;
 }
 
 html, input {
@@ -24,6 +26,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  margin-bottom: 60px;
 }
 
 ul {
@@ -49,7 +52,7 @@ ul {
 /* Login Page */
 
 .login.page {
-  background-color: #000;
+  background-color: white;
 }
 
 .login.page .form {
@@ -146,4 +149,91 @@ ul {
   position: absolute;
   right: 0;
   width: 100%;
+}
+
+.thumbnail {
+  height: 50px;
+  width: 50px;
+  border-radius: 19px;
+}
+
+.card {
+  border-radius: 19px;
+  padding: 5px;
+  text-align: center;
+  background-color: white;
+  border-style: solid;
+  border-color: black;
+}
+
+.selectdiv {
+  display: block;
+  font-size: 16px;
+  width: 200px;
+  height: 50px;
+  /*   margin: 20px 20px 20px 20px; */
+  /*     border-style: solid */
+}
+
+.select-content {
+  /*   position: absolute; */
+  background-color: #f9f9f9;
+  min-width: 200px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.0);
+  padding: 12px 16px;
+  z-index: 1;
+}
+
+.button {
+  display: block;
+  width: 150px;
+  height: 50px;
+  font-size: 16px;
+}
+
+.button-jog {
+  width: 60px;
+  height: 30px;
+  font-size: 16px;
+  margin: 5px
+}
+
+body {
+  background-color: #f5f5f5;
+}
+
+.container {
+  margin-top: 50px;
+}
+
+form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 5px #999;
+}
+
+form h2 {
+  margin-bottom: 20px;
+}
+
+form .form-group {
+  margin-bottom: 20px;
+}
+
+form label {
+  font-weight: bold;
+}
+
+form input[type="text"], form input[type="password"] {
+  border-radius: 0;
+}
+
+form button[type="submit"] {
+  border-radius: 0;
+}
+.tab-pane {
+  position: absolute;
+  top: 200px;
+  width: 100%
 }

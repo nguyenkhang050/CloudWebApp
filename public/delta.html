@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+
+
+    <!-- Add bootstrap and others -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src='/socket.io/socket.io.js'></script>
+    <!--<form id="send-container">
+        <input type="text" id="message-input">
+        <button type="submit" id="send-button">Send</button>
+    </form>-->
+    <section>
+        <div id="first-section">
+            <div class="row" id="first-row_Robot2">
+            </div>
+        </div>
+    </section>
+    <br />
+    <section>
+        <div class="container-fuild">
+            <div class="row">
+                <div class="col-md-2" style="display: inline-block">
+                    <div class="card">
+                        <center class="cartesianCenter">
+                            <span class="cartesian">X: <strong><span id="xText">0</span></strong></span><br>
+                            <span class="cartesian">Y: <strong><span id="yText">100</span></strong></span><br>
+                            <span class="cartesian">Z: <strong><span id="zText">50</span></strong></span><br>
+                            <span class="cartesian">Roll: <strong><span id="rollText">180</span></strong></span><br>
+                            <span class="cartesian">Pitch: <strong><span id="pitchText">0</span></strong></span><br>
+                            <span class="cartesian">Yaw: <strong><span id="yawText">163</span></strong></span><br>
+                        </center>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card">
+                        <center>
+                            <span class="joint">J1 <strong><span id="j1Text">0</span></strong></span><br>
+                            <span class="joint">J2: <strong><span id="j2Text">0</span></strong></span><br>
+                            <span class="joint">J3: <strong><span id="j3Text">50</span></strong></span><br>
+                            <span class="joint">J4: <strong><span id="j4Text">180</span></strong></span><br>
+                        </center>
+                    </div>
+                </div>
+                <div class="col-md-3" style="border-style:solid">
+                    <div class="card" style="border-style:none">
+                        <center>
+                            <div>
+                                <button class="button" onclick="btnSVON()">Servo ON</button><br>
+                                <button class="button" onclick="btnSVOFF()">Servo OFF</button>
+                            </div>
+                            <br />
+                            <div class="selectdiv">
+                                <label>
+                                    <select class="select-content" style="width: 210px;" id="select_coordinate" onchange="select_coordinate()">
+                                        <option selected> Choose Coordinates </option>
+                                        <option>Joint Coordinates</option>
+                                        <option>Cartesian Coordinates</option>
+                                        <option>Tool Coordinates</option>
+                                        <option>User Coordinate</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="selectdiv">
+                                <label>
+                                    <select class="select-content" style="width: 210px;" id="select_tool" onchange="select_tool()">
+                                        <option selected> Choose Tool </option>
+                                        <option>Joint Coordinates</option>
+                                        <option>Cartesian Coordinates</option>
+                                        <option>Tool Coordinates</option>
+                                        <option>User Coordinates</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="selectdiv">
+                                <label>
+                                    <select class="select-content" style="min-width: 210px;" id="select_speed" onchange="select_speed()">
+                                        <option selected> Choose Speed </option>
+                                        <option>Low</option>
+                                        <option>Medium</option>
+                                        <option>High</option>
+                                        <option>Top</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </center>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="card" style="border-style: solid;">
+                        <label>Jog</label>
+                        <center class="jog">
+                            <div>
+                                <button class="button-jog" onmousedown="btnJ1_neg_pressed()" onmouseup="btnJ1_neg_released()">J1-</button>
+                                <button class="button-jog" onmousedown="btnJ1_pos_pressed()" onmouseup="btnJ1_pos_released()">J1+</button><br>
+                                <button class="button-jog" onmousedown="btnJ2_neg_pressed()" onmouseup="btnJ2_neg_released()">J2-</button>
+                                <button class="button-jog" onmousedown="btnJ2_pos_pressed()" onmouseup="btnJ2_pos_released()">J2+</button><br>
+                                <button class="button-jog" onmousedown="btnJ3_neg_pressed()" onmouseup="btnJ3_neg_released()">J3-</button>
+                                <button class="button-jog" onmousedown="btnJ3_pos_pressed()" onmouseup="btnJ3_pos_released()">J3+</button><br>
+                                <button class="button-jog" onmousedown="btnJ4_neg_pressed()" onmouseup="btnJ4_neg_released()">J4-</button>
+                                <button class="button-jog" onmousedown="btnJ4_pos_pressed()" onmouseup="btnJ4_pos_released()">J4+</button><br>
+                                <button class="button-jog" onmousedown="btnJ5_neg_pressed()" onmouseup="btnJ5_neg_released()">J5-</button>
+                                <button class="button-jog" onmousedown="btnJ5_pos_pressed()" onmouseup="btnJ5_pos_released()">J5+</button><br>
+                                <button class="button-jog" onmousedown="btnJ6_neg_pressed()" onmouseup="btnJ6_neg_released()">J6-</button>
+                                <button class="button-jog" onmousedown="btnJ6_pos_pressed()" onmouseup="btnJ6_pos_released()">J6+</button><br>
+
+                            </div>
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const statusBar_Robot2 = [
+        {
+            name: "Tool\n Number",
+            value: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            img:   ["/images/imgs/tool.png"],
+            id: "toolnum_Robot2",
+            img_id: "img_toolnum_Robot2"
+        },
+        {
+            name: "Jogging Speed",
+            value: ["Low", "Medium", "High", "Top"],
+            img:   ["/images/imgs/low_speed.png", "/images/imgs/medium_speed.png", "/images/imgs/high_speed.png", "/images/imgs/top_speed.png"],
+            id: "jogspe_Robot2",
+            img_id: "img_jogspe_Robot2"
+        },
+        {
+            name: "Coordinate System",
+            value: ["Joint", "XYZ-World", "XYZ-Tool", "User"],
+            img:   ["/images/imgs/jog_coor.png", "/images/imgs/world_coor.png", "/images/imgs/tool_coor.png", "/images/imgs/user_coor.png"],
+            id: "coord_Robot2",
+            img_id: "img_coord_Robot2"
+        },
+        {
+            name: "Servo Status",
+            value: ["OFF", "ON"],
+            img:   ["/images/imgs/off_servo_status.png", "/images/imgs/on_servo_status.png"],
+            id: "servosta_Robot2",
+            img_id: "img_servosta_Robot2"
+        },
+        {
+            name: "System Status",
+            value: ["OK", "Alarm", "Run", "Pause"],
+            img:   ["/images/imgs/ok_system_status.png", "/images/imgs/alarm_system_status.png", "/images/imgs/run_system_status.png", "/images/imgs/pause_system_status.png"],
+            id: "systemsta_Robot2",
+            img_id: "img_systemsta_Robot2"
+        },
+        {
+            name: "Lock/Unlock Controller",
+            value: ["Unlock", "Lock"],
+            img:   ["/images/imgs/unlock.png", "/images/imgs/lock.png"],
+            id: "lock_Robot2",
+            img_id: "img_lock_Robot2"
+        },
+        {
+            name: "Mode",
+            value: ["Teach", "Automatic"],
+            img:   ["/images/imgs/teach.png", "/images/imgs/auto.png]"],
+            id: "mode_Robot2",
+            img_id: "img_mode_Robot2"
+        },
+        {
+            name: "Security Level",
+            value: ["Operation", "Edit", "Management"],
+            img:   ["/images/imgs/security.png"],
+            id: "secur_Robot2",
+            img_id: "img_secur_Robot2"
+        },
+        ]
+        const main_Robot2 = document.getElementById("first-row_Robot2");
+        statusBar_Robot2.forEach(element => {
+            const div_card = document.createElement('div');
+            div_card.innerHTML = `
+                        <center>
+                            <div class="col">
+                                <center>
+                                    <div class="card" style="width: 9rem; height: 9rem">
+                                            <center><img src=${element["img"][0]} id="${element["img_id"]}" class="thumbnail"/></center>
+                                            <center><p id="${element["id"]}">${element["value"][0]}</p></center>
+                                            <h3 style="font-size: 16px">${element["name"]}</h3>
+                                    </div>
+                                </center>
+                                </div>
+                        </center>
+            `
+            main_Robot2.appendChild(div_card);
+        })
+    </script>
+
+</body>
+</html>
+<style>
+    * {
+  box-sizing: border-box;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.thumbnail {
+  height: 50px;
+  width: 50px;
+  border-radius: 19px;
+}
+
+.card {
+  border-radius: 19px;
+  padding: 5px;
+  text-align: center;
+  background-color: white;
+  border-style: solid;
+  border-color: black;
+}
+
+.selectdiv {
+  display: block;
+  font-size: 16px;
+  width: 200px;
+  height: 50px;
+  /*   margin: 20px 20px 20px 20px; */
+  /*     border-style: solid */
+}
+
+.select-content {
+  /*   position: absolute; */
+  background-color: #f9f9f9;
+  min-width: 200px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.0);
+  padding: 12px 16px;
+  z-index: 1;
+}
+
+.button {
+  display: block;
+  width: 150px;
+  height: 50px;
+  font-size: 16px;
+}
+
+.button-jog {
+  width: 60px;
+  height: 30px;
+  font-size: 16px;
+  margin: 5px
+}
+
+body {
+  background-color: #f5f5f5;
+}
+
+.container {
+  margin-top: 50px;
+}
+
+form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 5px #999;
+}
+
+form h2 {
+  margin-bottom: 20px;
+}
+
+form .form-group {
+  margin-bottom: 20px;
+}
+
+form label {
+  font-weight: bold;
+}
+
+form input[type="text"], form input[type="password"] {
+  border-radius: 0;
+}
+
+form button[type="submit"] {
+  border-radius: 0;
+}
+.tab-pane {
+  position: absolute;
+  top: 200px;
+  width: 100%
+}
+
+</style>
