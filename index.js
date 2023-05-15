@@ -10,6 +10,8 @@ const sql = require('mssql');
 const { MessageSecurityMode, SecurityPolicy, AttributeIds, OPCUAClient, TimestampsToReturn } = require("node-opcua");
 const hostname = require("os").hostname().toLowerCase();
 const endpointUrl = "opc.tcp://192.168.0.105:4840/";
+const moment = require('moment-timezone');
+
 // const io = require('socket.io')(server);
 // New
 var io = require('socket.io')(server);
@@ -767,41 +769,68 @@ async function createOPCUAClient(io, data, socket) {
 // });
 //   AttriId_value = AttributeIds.Value;
 }
+// const config = {
+//   user: 'nguyenkhang050',
+//   password: 'DNKhang112@',
+//   server: 'webapp-database.database.windows.net',
+//   database: 'RobotManageDB-tak1',
+//   authentication: {
+//     type: 'default'
+//   },
+//   options: {
+//     encrypt: true
+//   }
+// };
 const config = {
-  user: 'nguyenkhang050',
-  password: 'DNKhang112@',
-  server: 'webapp-database.database.windows.net',
-  database: 'RobotManageDB-tak1',
-  authentication: {
-    type: 'default'
-  },
+  user: 'khang123',
+  password: '1234',
+  server: 'LAPTOP-1PBL42UK\\SQLEXPRESS',
+  database: 'RobotManageDB',
   options: {
-    encrypt: true
+    trustServerCertificate: true
   }
 };
-
 
 
 async function connectAndQuery(socket) {
   try {
     var poolConnection = await sql.connect(config);
 
-    console.log("Reading rows from the Table...");
+    // console.log("Reading rows from the Table...");
     // var resultSet = await poolConnection.request().query(`SELECT *
     // FROM Robot1_tbl
     // ORDER BY [TimeStamp] DESC
     // OFFSET 0 ROWS
     // FETCH NEXT 1 ROWS ONLY;`);
 
-    var resultSet = await poolConnection.request().query(`SELECT x FROM Robot1_tbl ORDER BY TimeStamp DESC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY;
-    `);
-
-    console.log(resultSet.recordset);
+    var resultSet = await poolConnection.request().query(`SELECT * FROM Robot_Management ORDER BY TimeStamp DESC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY;`);
+    
+    // console.log(resultSet.recordset);
     socket.emit("database", resultSet.recordset);
     poolConnection.close();
   } catch (err) {
     console.error(err.message);
   } 
+}
+async function insertJobSchedule(data) {
+  try {
+    // Connect to the database
+    const pool = await sql.connect(config);
+    const sqlDatetime = moment.utc(data.time).format('YYYY-MM-DD HH:mm:ss');
+
+    // const datetime = moment(data.time).add(utcOffsetInHours, 'hours').format('YYYY-MM-DD HH:mm:ss');
+    // const sqlDatetime = new Date(datetime).toISOString().slice(0, 19).replace('T', ' ');  
+    // Define the SQL query to insert data into the table
+    const query = `INSERT INTO Job_Schedule (Robot, Program, Time) VALUES ('${data.robot}', '${data.program}', '${sqlDatetime}')`;
+    console.log(sqlDatetime);
+    // Execute the query
+    await pool.request().query(query);
+
+    // Close the connection
+    await pool.close();
+  } catch (err) {
+    console.error(err.message);
+  }
 }
 
 server.listen(port, () => {
@@ -870,7 +899,14 @@ io.on('connection', (socket, io) => {
       });
     }
   });
+  setInterval(() => {
+    connectAndQuery(socket);
+  }, 1000);
 
+  socket.on("JobSchedule", data => {
+    console.log(data);
+    insertJobSchedule(data);
+  })
   socket.on("login", data => {
     console.log(data);
     setInterval(() => {

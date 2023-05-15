@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Socket.IO Chat Example</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <link  href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script src='/socket.io/socket.io.js'></script>
+  <ul class="pages">
+    <li class="login page">
+      <h1>Login</h1>
+      <div class="container">
+          <div class="row">
+            <div class="col-md-4 offset-md-4">
+              <h2 class="text-center">Login</h2>
+              <form id="send-container">
+                <div class="form-group">
+                  <label for="username">Username:</label>
+                  <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                  <label for="password">Password:</label>
+                  <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <div class="form-group text-center">
+                  <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+              </form>
+            </div>
+          </div>
+      </div>
+      <div id="error-message" style="color: red;"></div>
+      <span class="cartesian">X: <strong><span id="xText">0</span></strong></span><br>
+    </li>
+  </ul>
+
+  <script>
+    // const socket = io.connect('http://localhost:3700');
+    const socket = io();
+    const loginForm = document.getElementById('send-container');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    loginForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const username = usernameInput.value;
+        const password = passwordInput.value;
+        socket.emit("login", { username, password });
+        console.log("username: " + username + "; password: ", + password)
+    })
+
+    socket.on("login-response", function (data) {
+        if (data.success) {
+            window.location.href = "/mainview.html";
+        } else {
+            $("#error-message").text(data.message);
+        }
+    });
+    socket.on("logging ...", function(data){
+      console.log("logging ...");
+    })
+    socket.on("database", function(data){
+      // console.log(data);
+      const xValue = data[0].x;
+      console.log(xValue);
+      const x_text = document.getElementById("xText");
+      x_text.innerText = xValue;
+    })
+</script>
+</body>
+</html>
