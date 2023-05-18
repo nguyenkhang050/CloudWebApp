@@ -781,6 +781,7 @@ async function createOPCUAClient(io, data, socket) {
 //     encrypt: true
 //   }
 // };
+let login_successful = false;
 const config = {
   user: 'khang123',
   password: '1234',
@@ -790,7 +791,6 @@ const config = {
     trustServerCertificate: true
   }
 };
-
 
 async function connectAndQuery(socket) {
   try {
@@ -805,7 +805,8 @@ async function connectAndQuery(socket) {
 
     var resultSet = await poolConnection.request().query(`SELECT * FROM Robot_Management ORDER BY TimeStamp DESC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY;`);
     
-    // console.log(resultSet.recordset);
+    console.log(resultSet.recordset);
+    // console.log('request')
     socket.emit("database", resultSet.recordset);
     poolConnection.close();
   } catch (err) {
@@ -816,13 +817,15 @@ async function insertJobSchedule(data) {
   try {
     // Connect to the database
     const pool = await sql.connect(config);
-    const sqlDatetime = moment.utc(data.time).format('YYYY-MM-DD HH:mm:ss');
+    const sqlDatetime_start = moment.utc(data.time_start).format('YYYY-MM-DD HH:mm:ss');
+    const sqlDatetime_end   = moment.utc(data.time_end).format('YYYY-MM-DD HH:mm:ss');
 
     // const datetime = moment(data.time).add(utcOffsetInHours, 'hours').format('YYYY-MM-DD HH:mm:ss');
     // const sqlDatetime = new Date(datetime).toISOString().slice(0, 19).replace('T', ' ');  
     // Define the SQL query to insert data into the table
-    const query = `INSERT INTO Job_Schedule (Robot, Program, Time) VALUES ('${data.robot}', '${data.program}', '${sqlDatetime}')`;
-    console.log(sqlDatetime);
+    const query = `INSERT INTO Job_Schedule (Robot, Program, Time_Start, Time_End) VALUES ('${data.robot}', '${data.program}', '${sqlDatetime_start}', '${sqlDatetime_end}')`;
+    console.log(sqlDatetime_start);
+    console.log(sqlDatetime_end);
     // Execute the query
     await pool.request().query(query);
 
@@ -839,7 +842,22 @@ server.listen(port, () => {
 
 // Routing
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.get("/dashboard", function (req, res, next) {
+  if (!login_successful) {
+    res.redirect('..');
+  } else {
+    next();
+    res.render('dashboard')
+  }
+});
+app.get("/dashboard.html", function (req, res, next) {
+  if (!login_successful) {
+    res.redirect('..');
+  } else {
+    next();
+    res.render('dashboard')
+  }
+});
 // Chatroom
 
 let numUsers = 0;
@@ -909,9 +927,15 @@ io.on('connection', (socket, io) => {
   })
   socket.on("login", data => {
     console.log(data);
-    setInterval(() => {
-      connectAndQuery(socket);
-    }, 1000);
+    if (data.username == 'khang123' && data.password == '1234') {
+      socket.emit("login-response", { success: true });
+      login_successful = true;
+    }
+    else {
+      login_successful = false;
+      socket.emit("login-response", { success: false });
+    }
+    
     // socket.emit("login-response", { success: true });
     // createOPCUAClient(io,data,socket);
   });

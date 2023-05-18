@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robot Monitoring System</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src='/socket.io/socket.io.js'></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    body {
+      background-color: #f1f4f6;
+    }
+
+    .card {
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      background-color: #fff;
+      border-bottom: none;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 200px;
+    }
+
+    .chart-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .status-label {
+      font-size: 18px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .status-badge.running {
+      background-color: #5cb85c;
+    }
+
+    .status-badge.pausing {
+      background-color: #f0ad4e;
+    }
+
+    .status-badge.stopping {
+      background-color: #d9534f;
+    }
+
+    .status-badge.alarm {
+      background-color: #343a40;
+    }
+    .robot-image {
+        width: 110px;
+        height: 180px;
+      }
+    .card-image{
+      width: 50px;
+      height: 50px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="mt-4 mb-4">Robot Monitoring System</h1>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Robot Status</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-3">
+                <div class="status-label">Robot Arm 3 DoF</div>
+                <div id="robot1-status" class="status-badge"></div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <center><img src="/images/imgs/3dof_robot_arm.jpg" class="robot-image "></center>                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Control Panel</h5>
+          </div>
+          <div class="card-body">
+            <form id="send-container">
+              <div class="form-group">
+                <label for="program">Send Program:</label>
+                <textarea class="form-control" id="program" rows="5"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="robot">Robot:</label>
+                <select class="form-control" id="robot">
+                  <option>Robot 1</option>
+                </select>
+              </div>
+              <label for="time">Set Operating Time:</label>
+              <div class="form-group">
+                <label for="time">Set Start Time:</label>
+                <input type="datetime-local" id="time" name="time">
+              </div>
+              <div class="form-group">
+                <label for="time">Set End Time:</label>
+                <input type="datetime-local" id="time_end" name="time">
+              </div>
+              <button type="submit" class="btn btn-primary">Set</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Time Operating</h5>
+            <center><img src="/images/imgs/clock.png" class="card-image float-right"></center>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              
+              <canvas id="time-chart"></canvas>
+              <div class="chart-value" id="time-value"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Battery Status</h5>
+            <center><img src="/images/imgs/battery.jpg" class="card-image float-right"></center>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="power-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Motor Temperature</h5>
+            <center><img src="/images/imgs/thermo.png" class="card-image float-right"></center>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="temp-chart"></canvas>
+              <div class="chart-value" id="temperature-value"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Reset Count</h5>
+            <center><img src="/images/imgs/reset.png" class="card-image float-right"></center>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="reset-chart"></canvas>
+              <div class="chart-value" id="reset-value"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // const socket = io.connect('http://localhost:3700');
+    const socket = io();
+    let timeChart, powerChart, tempChart, resetChart;
+    let motorTempValue =0, timeOpValue=0, resetCntValue=0; 
+    function createTimeChart() {
+    const ctx = document.getElementById('time-chart').getContext('2d');
+    
+    timeChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [timeOpValue, 100 - timeOpValue],
+          backgroundColor: ["#5cb85c", "#f1f4f6"],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: "70%",
+        responsive: true,
+        maintainAspectRatio: false,
+        tooltips: {
+          enabled: false
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+  }
+  function createTempChart() {
+  const ctx = document.getElementById('temp-chart').getContext('2d');
+  
+  tempChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [motorTempValue, 100 - motorTempValue],
+        backgroundColor: ['#5cb85c', '#dc3545'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      cutout: '50%',
+      responsive: true,
+      maintainAspectRatio: false,
+      tooltips: {
+        enabled: false
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        datalabels: {
+          formatter: (value, ctx) => {
+          },
+          color: '#000',
+          font: {
+            size: 24,
+            weight: 'bold'
+          },
+          anchor: 'center'
+        }
+      }
+    }
+  });
+}
+
+  function createResetChart() {
+    const ctx = document.getElementById('reset-chart').getContext('2d');  
+    
+    resetChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [resetCntValue, 5 - resetCntValue],
+          backgroundColor: ["#f0ad4e", "#f1f4f6"],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: "70%",
+        responsive: true,
+        maintainAspectRatio: false,
+        tooltips: {
+          enabled: false
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+  }
+  function createPowerChart() {
+    const ctx = document.getElementById('power-chart').getContext('2d');
+    powerChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['OK', 'Low Battery'],
+        datasets: [{
+          data: [0, 0],
+          backgroundColor: ['#28a745', '#dc3545'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+    const jobForm = document.getElementById('send-container');
+    jobForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const robot = document.getElementById('robot').value;
+      const program = document.getElementById('program').value;
+      const time_start = document.getElementById('time').value;
+      const time_end   = document.getElementById('time_end').value;
+      socket.emit("JobSchedule", { robot, program, time_start, time_end});
+      console.log("robot: " + robot + "; program: " + program + "; time start: " + time_start +"; time end: "+ time_end);
+    })
+
+    socket.on("database", function (data) {
+      console.log(data);
+      const { Name_R1, Status_R1, Time_Op_R1, Power_Status_R1, Motor_Temp_R1, Reset_Cnt_R1 } = data[0];
+      const statusValue = data[0].Status_R1;
+      console.log(statusValue)
+      const statusBadge = document.getElementById("robot1-status");
+      statusBadge.innerHTML = statusValue;
+
+      if (statusValue === "Run") {
+        statusBadge.classList.add("run");
+        statusBadge.style.backgroundColor = "#8bc34a"; // Light green
+      } else if (statusValue === "Pause") {
+        statusBadge.classList.add("pause");
+        statusBadge.style.backgroundColor = "#fdd835"; // Yellow
+      } else if (statusValue === "Stop") {
+        statusBadge.classList.add("stop");
+        statusBadge.style.backgroundColor = "#9e9e9e"; // Grey
+      } else if (statusValue === "Alarm") {
+        statusBadge.classList.add("alarm");
+        statusBadge.style.backgroundColor = "#f44336"; // Red
+      }
+      const timeValue = document.getElementById("time-value");
+      const timeOpValue = data[0].Time_Op_R1;
+      if (timeOpValue < 60) {
+        timeValue.textContent = `${timeOpValue} seconds`;
+      }
+      else {
+        const min = Math.floor(timeOpValue/60);
+        const sec = timeOpValue % 60;
+        timeValue.textContent = `${min} mins ${sec} secs`;
+      }
+      const motorTempValue = data[0].Motor_Temp_R1;
+      const rounded_motor_tempValue = Math.round(motorTempValue * 100) / 100;
+      const temperatureValue = document.getElementById("temperature-value");
+      if (motorTempValue > 70) {
+        tempChart.data.datasets[0].backgroundColor = ['#dc3545', '#dc3545']; // Update with your desired colors
+        // Update the chart
+        tempChart.update();
+      }
+      else {
+        tempChart.data.datasets[0].backgroundColor = ['#5cb85c', '#dc3545']; // Update with your desired colors
+        // Update the chart
+        tempChart.update();
+      }
+      
+      temperatureValue.textContent = `${rounded_motor_tempValue}°C`;
+      const resetCntValue = data[0].Reset_Cnt_R1;
+      const resetValue = document.getElementById("reset-value");
+      resetValue.textContent = `${resetCntValue}`;
+
+      // Update time operating chart
+      timeChart.data.datasets[0].data = [Time_Op_R1];
+      timeChart.update();
+
+      // Update power supply status chart
+      const powerData = Power_Status_R1 === 'OK' ? [1, 0] : [0, 1];
+      powerChart.data.datasets[0].data = powerData;
+      powerChart.update();
+
+      // Update motor temperature chart
+      tempChart.data.datasets[0].data = [Motor_Temp_R1];
+      tempChart.update();
+
+      // Update reset count chart
+      resetChart.data.datasets[0].data = [Reset_Cnt_R1];
+      resetChart.update();
+      
+
+      
+    });
+    // Create charts on page load
+    window.addEventListener('load', () => {
+      createTimeChart();
+      createPowerChart();
+      createTempChart();
+      createResetChart();
+    });
+  </script>
+</body>
+
+</html>
+
+

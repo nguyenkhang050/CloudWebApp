@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Monitoring System</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+  
+      h1 {
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+  
+      .container-fluid {
+        margin-top: 50px;
+      }
+  
+      .table th,
+      .table td {
+        vertical-align: middle;
+      }
+  
+      .robot-image {
+        width: 50px;
+        height: 50px;
+      }
+  
+      .form-group {
+        margin-bottom: 20px;
+      }
+  
+      .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+      }
+  
+      .btn-primary:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+      }
+  
+      .btn-primary:focus,
+      .btn-primary.focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
+      }
+    </style>
+  </head>
+<body>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-6">
+        <h1>Robot Monitoring System</h1>
+        <div class="row">
+          <div class="col-lg-6">
+            <h2>Robot Status</h2>
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Robot 1</h5>
+                <p class="card-text">Status: <span id="robot1-status"></span></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <h2>Time Operating</h2>
+            <canvas id="time-chart"></canvas>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-6">
+            <h2>Power Supply Status</h2>
+            <canvas id="power-chart"></canvas>
+          </div>
+          <div class="col-lg-6">
+            <h2>Motor Temperature</h2>
+            <canvas id="temp-chart"></canvas>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-6">
+            <h2>Reset Count</h2>
+            <canvas id="reset-chart"></canvas>
+          </div>
+        </div>
+      </div>
+          <div class="col-lg-6">
+            <h2>Control Panel</h2>
+            <form id="send-container">
+              <div class="form-group">
+                <label for="program">Send Program:</label>
+                <textarea class="form-control" id="program" rows="5"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="robot">Robot:</label>
+                <select class="form-control" id="robot">
+                  <option>Robot 1</option>
+                  <option>Robot 2</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="time">Set Operating Time:</label>
+                <input type="datetime-local" id="time" name="time">
+              </div>
+              <button type="submit" class="btn btn-primary">Set</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <span class="cartesian">X: <strong><span id="xText">0</span></strong></span><br>
+    </li>
+  </ul>
+
+  <!-- <script>
+    // const socket = io.connect('http://localhost:3700');
+    const socket = io();
+    const jobForm = document.getElementById('send-container');
+    jobForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const robot = document.getElementById('robot').value;
+      const program = document.getElementById('program').value;
+      const time = document.getElementById('time').value;
+      socket.emit("JobSchedule", { robot, program, time });
+      console.log("robot: " + robot + "; program: ", + program + "; time: " + time);  
+    })
+    
+    socket.on("database", function(data){
+      // console.log(data);
+      const statusValue = data[0].Status_R1;
+      document.getElementById("robot1-status").innerHTML = `${statusValue}`;
+
+      const time_opValue = data[0].Time_Op_R1;
+      const rounded_time_opValue = Math.round(time_opValue * 100) / 100;
+      document.getElementById("robot1-time-operating").innerHTML = `${rounded_time_opValue}`;
+
+      const power_statusValue = data[0].Power_Status_R1;
+      document.getElementById("robot1-power-status").innerHTML = `${power_statusValue}`;
+
+      const motor_tempValue = data[0].Motor_Temp_R1;
+      console.log(motor_tempValue);
+      const rounded_motor_tempValue = Math.round(motor_tempValue * 100) / 100; // round to 2 decimal places
+      // console.log(rounded_motor_tempValue); 
+      document.getElementById("robot1-motor-temp").innerHTML = `${rounded_motor_tempValue}&deg;C`;
+
+      const reset_cntValue = data[0].Reset_Cnt_R1;
+      document.getElementById("robot1-reset-count").innerHTML = `${reset_cntValue}`;
+    })
+</script> -->
+<script>
+  const socket = io();
+
+  // Initialize chart variables
+  let timeChart, powerChart, tempChart, resetChart;
+
+  // Create and update time operating chart
+  function createTimeChart() {
+    const ctx = document.getElementById('time-chart').getContext('2d');
+    timeChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Robot 1'],
+        datasets: [{
+          label: 'Time Operating',
+          data: [0],
+          backgroundColor: '#007bff',
+          borderColor: '#007bff',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Time (hours)'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Create and update power supply status chart
+  function createPowerChart() {
+    const ctx = document.getElementById('power-chart').getContext('2d');
+    powerChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['OK', 'Low Battery'],
+        datasets: [{
+          data: [0, 0],
+          backgroundColor: ['#28a745', '#dc3545'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+
+  // Create and update motor temperature chart
+  function createTempChart() {
+    const ctx = document.getElementById('temp-chart').getContext('2d');
+    tempChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Robot 1'],
+        datasets: [{
+          label: 'Motor Temperature',
+          data: [0],
+          fill: false,
+          borderColor: '#ffc107',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Temperature (°C)'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Create and update reset count chart
+  function createResetChart() {
+    const ctx = document.getElementById('reset-chart').getContext('2d');
+    resetChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Robot 1'],
+        datasets: [{
+          label: 'Reset Count',
+          data: [0],
+          backgroundColor: '#dc3545',
+          borderColor: '#dc3545',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Count'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Event listener for job submission
+  const jobForm = document.getElementById('send-container');
+  jobForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const robot = document.getElementById('robot').value;
+    const program = document.getElementById('program').value;
+    const time = document.getElementById('time').value;
+    socket.emit('JobSchedule', { robot, program, time });
+    console.log('robot: ' + robot + '; program: ' + program + '; time: ' + time);
+  });
+    // Update charts when receiving data from the server
+    socket.on('database', function(data) {
+      const { Status_R1, Time_Op_R1, Power_Status_R1, Motor_Temp_R1, Reset_Cnt_R1 } = data[0];
+
+      // Update robot status
+      document.getElementById('robot1-status').innerHTML = Status_R1;
+
+      // Update time operating chart
+      timeChart.data.datasets[0].data = [Time_Op_R1];
+      timeChart.update();
+
+      // Update power supply status chart
+      const powerData = Power_Status_R1 === 'OK' ? [1, 0] : [0, 1];
+      powerChart.data.datasets[0].data = powerData;
+      powerChart.update();
+
+      // Update motor temperature chart
+      tempChart.data.datasets[0].data = [Motor_Temp_R1];
+      tempChart.update();
+
+      // Update reset count chart
+      resetChart.data.datasets[0].data = [Reset_Cnt_R1];
+      resetChart.update();
+    });
+
+    // Create charts on page load
+    window.addEventListener('load', () => {
+      createTimeChart();
+      createPowerChart();
+      createTempChart();
+      createResetChart();
+    });
+</script>
+<img src="/images/imgs/3dof_robot_arm.jpg" class="robot-image">
+</body>
+</html>
