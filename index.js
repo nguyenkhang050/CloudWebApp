@@ -770,10 +770,10 @@ async function createOPCUAClient(io, data, socket) {
 //   AttriId_value = AttributeIds.Value;
 }
 // const config = {
-//   user: 'nguyenkhang050',
+//   user: 'khang123',
 //   password: 'DNKhang112@',
-//   server: 'webapp-database.database.windows.net',
-//   database: 'RobotManageDB-tak1',
+//   server: 'sql-server-tak1.database.windows.net',
+//   database: 'sql-database-tak2',
 //   authentication: {
 //     type: 'default'
 //   },
